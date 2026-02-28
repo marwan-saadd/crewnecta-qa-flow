@@ -1,4 +1,4 @@
-# CrewNecta QA Flow
+# CrewNecta QA Flow - HACKATHON
 
 An AI-powered QA auditor and coaching engine for BPO (Business Process Outsourcing) contact centers, built with [CrewAI Flows](https://docs.crewai.com/concepts/flows).
 
