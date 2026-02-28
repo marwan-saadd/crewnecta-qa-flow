@@ -1,0 +1,79 @@
+compliance_audit_task:
+  description: >
+    Perform a compliance audit on this customer interaction transcript.
+
+    Interaction ID: {interaction_id}
+    Channel: {channel}
+    Agent: {agent_name} ({agent_id})
+
+    TRANSCRIPT:
+    {transcript_text}
+
+    Use the Compliance Pattern Matcher tool with the transcript text and the
+    appropriate requirement_set (use "general" plus "pci_dss" if payment is involved,
+    "sales" if it's a sales call, or "collections" if it's a collections call).
+
+    Check for:
+    1. Call recording disclosure — was the customer informed the call is recorded?
+    2. Identity verification — did the agent verify the customer's identity?
+    3. PCI-DSS — did the agent read back any card numbers or sensitive payment data?
+    4. Data handling — were SSN, date of birth, or other PII handled properly?
+    5. Required disclosures — were mandatory statements made?
+
+    Rate the compliance severity:
+    - CRITICAL: Regulatory risk (e.g., PCI violation, missing legally required disclosure)
+    - MAJOR: Policy breach (e.g., missing identity verification before account changes)
+    - MINOR: Process deviation (e.g., forgot optional courtesy statement)
+    - NONE: Fully compliant
+  expected_output: >
+    A detailed compliance audit finding including:
+    - compliance_score (0-100)
+    - compliance_severity (critical, major, minor, or none)
+    - compliance_issues (list of specific issues found)
+    - Whether identity verification was performed
+    - Whether call recording disclosure was given
+    - Any PCI-DSS violations detected
+
+quality_evaluation_task:
+  description: >
+    Perform a full quality evaluation on this customer interaction.
+
+    Interaction ID: {interaction_id}
+    Channel: {channel}
+    Agent: {agent_name} ({agent_id})
+    Customer Issue: {customer_issue}
+    Resolution Status: {resolution_status}
+
+    TRANSCRIPT:
+    {transcript_text}
+
+    COMPLIANCE FINDINGS FROM PRIOR AUDIT:
+    Review the compliance audit results from the prior task to understand any
+    compliance issues already identified. Incorporate these into your overall assessment.
+
+    Evaluate on these dimensions (score each 0-100):
+    1. COMPLIANCE: Use the compliance findings from the prior task
+    2. EMPATHY: Did the agent acknowledge customer emotions? Show patience?
+       Use appropriate language for the situation?
+    3. RESOLUTION: Was the customer's problem actually solved? Was the solution
+       appropriate and complete?
+    4. PROCESS ADHERENCE: Did the agent follow proper procedures? (verification,
+       hold procedures, transfer etiquette, proper documentation)
+
+    Use the QA Scorecard Calculator tool with your scores and
+    weight_profile="standard" to calculate the weighted overall score.
+
+    Provide a balanced assessment with BOTH strengths AND improvement areas.
+  expected_output: >
+    A complete QA evaluation with:
+    - interaction_id
+    - agent_id
+    - compliance_score (0-100)
+    - empathy_score (0-100)
+    - resolution_score (0-100)
+    - process_adherence_score (0-100)
+    - overall_score (0-100, weighted)
+    - compliance_issues (list of issues)
+    - strengths (list of what the agent did well)
+    - improvement_areas (list of areas to improve)
+    - compliance_severity (critical, major, minor, or none)

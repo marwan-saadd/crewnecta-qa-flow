@@ -1,0 +1,32 @@
+coaching_plan_task:
+  description: >
+    Generate a personalized coaching plan for agent {agent_name} ({agent_id}).
+
+    AGENT'S QA EVALUATIONS:
+    {agent_evaluations}
+
+    PATTERN INSIGHTS RELEVANT TO THIS AGENT:
+    {agent_patterns}
+
+    Create a coaching plan that:
+    1. Assesses overall performance level: "exceeds", "meets", "below", or "critical"
+    2. Identifies 2-3 key strengths with specific examples from their interactions
+    3. Identifies 2-3 priority improvements with specific examples
+       (e.g., "In interaction INT-003, when the customer said X, you responded with Y.
+       Instead, try Z")
+    4. Suggests concrete training actions (not generic advice like "be more empathetic")
+    5. Sets a follow-up timeline based on severity:
+       - Critical compliance issues: "48 hours — immediate remediation"
+       - Below expectations: "1 week — focused coaching"
+       - Meets with improvements: "2 weeks — check-in"
+       - Exceeds: "1 month — recognition and stretch goals"
+  expected_output: >
+    A complete coaching plan with:
+    - agent_id
+    - agent_name
+    - overall_performance (exceeds/meets/below/critical)
+    - key_strengths (list of specific strengths with examples)
+    - priority_improvements (list of specific improvements with examples)
+    - specific_examples (list of concrete examples from interactions)
+    - suggested_training (list of actionable training recommendations)
+    - follow_up_timeline (timeline string based on performance level)

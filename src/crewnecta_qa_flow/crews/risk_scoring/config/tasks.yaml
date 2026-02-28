@@ -1,0 +1,26 @@
+risk_scoring_task:
+  description: >
+    Analyze the following customer interaction transcript and assign a risk score.
+
+    Interaction ID: {interaction_id}
+    Channel: {channel}
+    Agent: {agent_name} ({agent_id})
+
+    TRANSCRIPT:
+    {transcript_text}
+
+    Use the Keyword Red Flag Scanner tool with the transcript text and channel type
+    to identify red flags. Then combine the tool's output with your own assessment
+    of the transcript to produce a final risk score.
+
+    Consider these factors beyond keyword matching:
+    - Overall customer sentiment and tone
+    - Whether the issue was resolved
+    - Length and complexity of the interaction
+    - Any signs of agent confusion or uncertainty
+  expected_output: >
+    A structured risk assessment with:
+    - interaction_id: the interaction ID
+    - risk_score: a float between 0.0 and 1.0
+    - risk_factors: list of specific risk factors identified
+    - priority_for_review: "high" (score >= 0.7), "medium" (0.4-0.69), or "low" (< 0.4)

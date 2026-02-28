@@ -1,0 +1,39 @@
+pattern_analysis_task:
+  description: >
+    Analyze ALL of the following QA evaluations from this batch to identify
+    cross-agent and systemic patterns.
+
+    CAMPAIGN: {campaign_name}
+    EVALUATION PERIOD: {evaluation_period}
+
+    QA EVALUATIONS SUMMARY:
+    {evaluations_summary}
+
+    Look for these pattern types:
+    1. AGENT-SPECIFIC: One agent has a recurring problem across multiple interactions
+       (e.g., same person consistently scores low on empathy)
+    2. SYSTEMIC: Multiple agents failing the same way — indicates a process or
+       training gap (e.g., 3+ agents all missing the same disclosure)
+    3. SCRIPT ISSUE: The script itself causes confusion or problems
+       (e.g., agents struggle with a particular objection because the script
+       doesn't cover it)
+    4. TRAINING GAP: Patterns suggesting agents need specific training
+       (e.g., new product launch with agents giving incorrect information)
+
+    For each pattern found, provide:
+    - Type of pattern
+    - Clear description
+    - Which agents are affected
+    - How frequently it occurs
+    - Which interaction IDs serve as evidence
+    - A specific recommended action
+
+    Also identify which agents need coaching plans based on:
+    - Any agent with an overall score below 70
+    - Any agent with a CRITICAL or MAJOR compliance violation
+    - Any agent showing a negative pattern across multiple interactions
+  expected_output: >
+    A structured analysis with:
+    - insights: list of pattern insights, each with pattern_type, description,
+      affected_agents, frequency, evidence_interaction_ids, and recommended_action
+    - agents_needing_coaching: list of agent_ids who need personalized coaching plans

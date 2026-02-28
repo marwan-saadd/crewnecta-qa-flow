@@ -1,0 +1,16 @@
+[project]
+name = "crewnecta-qa-flow"
+version = "0.1.0"
+description = "Intelligent QA Auditor & Coaching Engine — CrewAI Flow for BPO hackathon"
+requires-python = ">=3.10"
+dependencies = [
+    "crewai[tools,litellm]",
+    "pydantic>=2.0",
+    "python-dotenv",
+    "streamlit",
+    "plotly",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
