@@ -62,6 +62,16 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     # Set before kickoff to seed state with initial data
     initial_state: QAAuditorState | None = None
 
+    def _notify_step(self, step_name: str, status: str, summary: str | None = None) -> None:
+        """Emit a step notification to the WebSocket bridge (if active)."""
+        try:
+            from backend.bridge.event_bridge import emit_step_notification, emit_state_snapshot
+            emit_step_notification(step_name, status, summary)
+            if status == "completed":
+                emit_state_snapshot(self.state.model_dump(mode="json"))
+        except ImportError:
+            pass  # Backend not available (CLI mode)
+
     # ------------------------------------------------------------------
     # Step 1: Risk scoring
     # Reads:  raw_transcripts
@@ -70,6 +80,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @start()
     def ingest_and_risk_score(self):
         """Score ALL transcripts for risk priority using the Risk Scoring Crew."""
+        self._notify_step("ingest_and_risk_score", "started")
 
         # Populate state from initial_state if provided (use getattr
         # instead of model_dump to preserve Pydantic objects like
@@ -142,6 +153,8 @@ class QAAuditorFlow(Flow[QAAuditorState]):
         self.state.risk_scores.sort(key=lambda r: r.risk_score, reverse=True)
         print(f"\nRisk scoring complete: {self.state.transcripts_processed} processed, "
               f"{self.state.transcripts_failed} failed")
+        self._notify_step("ingest_and_risk_score", "completed",
+                          f"Scored {self.state.transcripts_processed} transcripts")
 
     # ------------------------------------------------------------------
     # Step 2: Deep QA analysis
@@ -151,6 +164,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @listen(ingest_and_risk_score)
     def deep_qa_analysis(self):
         """Run compliance + quality analysis on HIGH and MEDIUM priority transcripts."""
+        self._notify_step("deep_qa_analysis", "started")
         print(f"\n{'='*60}")
         print("STEP 2: Deep QA Analysis — compliance + quality evaluation")
         print(f"{'='*60}")
@@ -280,6 +294,8 @@ class QAAuditorFlow(Flow[QAAuditorState]):
 
         print(f"\nQA analysis complete. Average overall score: "
               f"{self.state.average_scores.get('overall', 'N/A')}")
+        self._notify_step("deep_qa_analysis", "completed",
+                          f"Avg score: {self.state.average_scores.get('overall', 'N/A')}")
 
     # ------------------------------------------------------------------
     # Step 3: Conditional router
@@ -289,6 +305,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @router(deep_qa_analysis)
     def route_by_compliance(self):
         """Route based on compliance severity: escalation or standard path."""
+        self._notify_step("route_by_compliance", "started")
         print(f"\n{'='*60}")
         print("STEP 3: Compliance Router — checking for critical violations")
         print(f"{'='*60}")
@@ -310,9 +327,11 @@ class QAAuditorFlow(Flow[QAAuditorState]):
             ]
             print(f"  ⚠ CRITICAL violations found in {len(critical)} interaction(s)")
             print(f"  → Routing to COMPLIANCE ESCALATION")
+            self._notify_step("route_by_compliance", "completed", "Routing to escalation")
             return "compliance_escalation"
 
         print("  ✓ No critical violations — standard analysis path")
+        self._notify_step("route_by_compliance", "completed", "Standard analysis path")
         return "standard_analysis"
 
     # ------------------------------------------------------------------
@@ -323,6 +342,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @listen("compliance_escalation")
     def handle_compliance_escalation(self):
         """Build urgent compliance escalation report from state."""
+        self._notify_step("handle_compliance_escalation", "started")
         print(f"\n{'='*60}")
         print("STEP 4a: Compliance Escalation — generating urgent report")
         print(f"{'='*60}")
@@ -367,6 +387,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
 
         self.state.compliance_escalation_report = "\n".join(lines)
         print("  ✓ Escalation report generated")
+        self._notify_step("handle_compliance_escalation", "completed", "Escalation report generated")
 
     # ------------------------------------------------------------------
     # Step 4b/5: Pattern detection
@@ -376,6 +397,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @listen(or_("compliance_escalation", "standard_analysis"))
     def detect_patterns(self):
         """Analyze all evaluations for cross-agent and systemic patterns."""
+        self._notify_step("detect_patterns", "started")
         print(f"\n{'='*60}")
         print("STEP 5: Pattern Detection — finding systemic issues")
         print(f"{'='*60}")
@@ -438,6 +460,8 @@ class QAAuditorFlow(Flow[QAAuditorState]):
                     agents_below.add(ev.agent_id)
             self.state.agents_needing_coaching = list(agents_below)
             print(f"  → Fallback: {len(agents_below)} agent(s) identified for coaching")
+        self._notify_step("detect_patterns", "completed",
+                          f"{len(self.state.pattern_insights)} patterns, {len(self.state.agents_needing_coaching)} agents need coaching")
 
     # ------------------------------------------------------------------
     # Step 6: Coaching plans
@@ -447,6 +471,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @listen(detect_patterns)
     def generate_coaching_plans(self):
         """Generate personalized coaching plans for flagged agents."""
+        self._notify_step("generate_coaching_plans", "started")
         print(f"\n{'='*60}")
         print("STEP 6: Coaching Plans — generating per-agent plans")
         print(f"{'='*60}")
@@ -529,6 +554,8 @@ class QAAuditorFlow(Flow[QAAuditorState]):
                 )
                 print(f"  ✗ Failed coaching plan for {agent_id}: {e}")
                 continue
+        self._notify_step("generate_coaching_plans", "completed",
+                          f"{len(self.state.coaching_plans)} coaching plans generated")
 
     # ------------------------------------------------------------------
     # Step 7: Final report compilation (inline — no crew)
@@ -538,6 +565,7 @@ class QAAuditorFlow(Flow[QAAuditorState]):
     @listen(generate_coaching_plans)
     def compile_final_report(self):
         """Compile executive summary and detailed QA report from all state."""
+        self._notify_step("compile_final_report", "started")
         print(f"\n{'='*60}")
         print("STEP 7: Final Report — compiling results")
         print(f"{'='*60}")
@@ -653,3 +681,4 @@ class QAAuditorFlow(Flow[QAAuditorState]):
         print(f"\n{'='*60}")
         print("QA AUDIT FLOW COMPLETE")
         print(f"{'='*60}")
+        self._notify_step("compile_final_report", "completed", "Reports compiled")

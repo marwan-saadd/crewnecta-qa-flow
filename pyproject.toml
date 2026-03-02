@@ -9,6 +9,9 @@ dependencies = [
     "python-dotenv",
     "streamlit",
     "plotly",
+    "fastapi",
+    "uvicorn[standard]",
+    "websockets",
 ]
 
 [build-system]
